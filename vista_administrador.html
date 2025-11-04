@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Administrador - ULEAM</title>
+    <link rel="stylesheet" href="styles_web.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="barra_principal">
+    <h1 class="titulo-principal">Panel de Administrador</h1>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <button class="btn-rojo" onclick="cerrarSesion()">Cerrar Sesión</button>
+      <img src="https://www.uleam.edu.ec/wp-content/uploads/2012/09/LOGO-ULEAM-VERTICAL.png" class="logo-uleam" style="height: 70px;">
+    </div>
+  </div>
+
+  <div style="max-width: 1200px; margin: auto; padding: 20px;">
+    
+    <!-- Estadísticas generales -->
+    <div class="dashboard-grid">
+      <div class="card-stat verde">
+        <h3>Usuarios Activos</h3>
+        <div class="numero" id="totalUsuarios">0</div>
+        <div class="detalle">Total en el sistema</div>
+      </div>
+      <div class="card-stat">
+        <h3>Equipos Registrados</h3>
+        <div class="numero" id="totalEquipos">0</div>
+        <div class="detalle">En inventario</div>
+      </div>
+      <div class="card-stat rojo">
+        <h3>Equipos en Reparación</h3>
+        <div class="numero" id="equiposRepar">0</div>
+        <div class="detalle">Requieren atención</div>
+      </div>
+      <div class="card-stat verde">
+        <h3>Órdenes Completadas</h3>
+        <div class="numero" id="ordenesComp">0</div>
+        <div class="detalle">Total</div>
+      </div>
+    </div>
+
+    <!-- Navegación por pestañas -->
+    <div class="nav-tabs">
+      <button class="activo" onclick="cambiarTab('usuarios')">Gestión de Usuarios</button>
+      <button onclick="cambiarTab('permisos')">Permisos y Roles</button>
+      <button onclick="cambiarTab('auditoria')">Auditoría</button>
+      <button onclick="cambiarTab('config')">Configuración</button>
+    </div>
+
+    <!-- Contenido Usuarios -->
+    <div class="seccion" id="tab-usuarios">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2>Usuarios del Sistema</h2>
+        <button class="btn-principal" onclick="abrirModal('nuevo')">+ Nuevo Usuario</button>
+      </div>
+      <table class="tabla-admin">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Último acceso</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaUsuarios"></tbody>
+      </table>
+    </div>
+
+    <!-- Contenido Permisos -->
+    <div class="seccion" id="tab-permisos" style="display: none;">
+      <h2>Gestión de Permisos y Roles</h2>
+      <p style="color: #666; margin-bottom: 20px;">Configure los permisos para cada rol del sistema.</p>
+      <table class="tabla-admin">
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Usuarios</th>
+            <th>Inventario</th>
+            <th>Mantenimiento</th>
+            <th>Reportes</th>
+            <th>Configuración</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Administrador</strong></td>
+            <td><span class="badge activo">Total</span></td>
+            <td><span class="badge activo">Total</span></td>
+            <td><span class="badge activo">Total</span></td>
+            <td><span class="badge activo">Total</span></td>
+            <td><span class="badge activo">Total</span></td>
+          </tr>
+          <tr>
+            <td><strong>Encargado de Inventario</strong></td>
+            <td><span class="badge inactivo">No</span></td>
+            <td><span class="badge activo">Total</span></td>
+            <td><span class="badge activo">Lectura</span></td>
+            <td><span class="badge activo">Inventario</span></td>
+            <td><span class="badge inactivo">No</span></td>
+          </tr>
+          <tr>
+            <td><strong>Técnico de Mantenimiento</strong></td>
+            <td><span class="badge inactivo">No</span></td>
+            <td><span class="badge activo">Lectura</span></td>
+            <td><span class="badge activo">Total</span></td>
+            <td><span class="badge activo">Mantenimiento</span></td>
+            <td><span class="badge inactivo">No</span></td>
+          </tr>
+          <tr>
+            <td><strong>Decanos/Directores</strong></td>
+            <td><span class="badge inactivo">No</span></td>
+            <td><span class="badge activo">Lectura</span></td>
+            <td><span class="badge activo">Lectura</span></td>
+            <td><span class="badge activo">Total</span></td>
+            <td><span class="badge inactivo">No</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Contenido Auditoría -->
+    <div class="seccion" id="tab-auditoria" style="display: none;">
+      <h2>Registro de Auditoría</h2>
+      <p style="color: #666; margin-bottom: 20px;">Historial de acciones realizadas en el sistema.</p>
+      <table class="tabla-admin">
+        <thead>
+          <tr>
+            <th>Fecha/Hora</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Módulo</th>
+            <th>Detalles</th>
+          </tr>
+        </thead>
+        <tbody id="tablaAuditoria"></tbody>
+      </table>
+    </div>
+
+    <!-- Contenido Configuración -->
+    <div class="seccion" id="tab-config" style="display: none;">
+      <h2>Configuración del Sistema</h2>
+      <div style="max-width: 600px;">
+        <div class="form-grupo">
+          <label>Nombre de la Institución</label>
+          <input type="text" value="Universidad Laica Eloy Alfaro de Manabí" id="nombreInstitucion">
+        </div>
+        <div class="form-grupo">
+          <label>Correo de Notificaciones</label>
+          <input type="email" value="notificaciones@uleam.edu.ec" id="correoNotif">
+        </div>
+        <div class="form-grupo">
+          <label>Días de Retención de Auditoría</label>
+          <input type="number" value="90" id="diasRetencion">
+        </div>
+        <div class="form-grupo">
+          <label>Alertas Automáticas</label>
+          <select id="alertasAuto">
+            <option selected>Activadas</option>
+            <option>Desactivadas</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label>Frecuencia de Respaldo</label>
+          <select id="frecRespaldo">
+            <option selected>Diario</option>
+            <option>Semanal</option>
+            <option>Mensual</option>
+          </select>
+        </div>
+        <button class="btn-principal" onclick="guardarConfiguracion()">Guardar Configuración</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear/editar usuario -->
+  <div class="modal" id="modalUsuario">
+    <div class="modal-content">
+      <h2 id="modalTitulo">Nuevo Usuario</h2>
+      <form id="formUsuario" onsubmit="guardarUsuario(event)">
+        <input type="hidden" id="usuarioId">
+        <div class="form-grupo">
+          <label>Nombre Completo *</label>
+          <input type="text" id="nombreCompleto" required>
+        </div>
+        <div class="form-grupo">
+          <label>Usuario *</label>
+          <input type="text" id="usuario" required>
+        </div>
+        <div class="form-grupo">
+          <label>Email *</label>
+          <input type="email" id="emailUsuario" required>
+        </div>
+        <div class="form-grupo">
+          <label>Contraseña *</label>
+          <input type="password" id="contrasena" required>
+        </div>
+        <div class="form-grupo">
+          <label>Rol *</label>
+          <select id="rolUsuario" required>
+            <option value="">Seleccionar rol</option>
+            <option>Administrador</option>
+            <option>Encargado de Inventario</option>
+            <option>Técnico de Mantenimiento</option>
+            <option>Decanos, Directores y Profesores</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label>Estado</label>
+          <select id="estadoUsuario">
+            <option selected>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+        <div class="form-acciones">
+          <button type="button" class="btn-rojo" onclick="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-verde">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="sistema-global.js"></script>
+  <script>
+    let usuarioEditando = null;
+
+    // Cargar datos
+    function cargarDatos() {
+      actualizarEstadisticas();
+      renderizarUsuarios();
+      generarAuditoria();
+    }
+
+    // Actualizar estadísticas
+    function actualizarEstadisticas() {
+      const usuarios = SistemaULEAM.Usuarios.obtenerTodos();
+      const inventario = SistemaULEAM.Inventario.obtenerTodos();
+      const ordenes = SistemaULEAM.Ordenes.obtenerTodas();
+      
+      document.getElementById('totalUsuarios').textContent = usuarios.filter(u => u.estado === 'Activo').length;
+      document.getElementById('totalEquipos').textContent = inventario.length;
+      document.getElementById('equiposRepar').textContent = inventario.filter(e => e.estado === 'En reparación').length;
+      document.getElementById('ordenesComp').textContent = ordenes.filter(o => o.estado === 'Completado').length;
+    }
+
+    // Renderizar usuarios
+    function renderizarUsuarios() {
+      const usuarios = SistemaULEAM.Usuarios.obtenerTodos();
+      const tbody = document.getElementById('tablaUsuarios');
+      
+      tbody.innerHTML = usuarios.map(user => `
+        <tr>
+          <td>${user.nombre}</td>
+          <td>${user.usuario}</td>
+          <td>${user.rol}</td>
+          <td><span class="badge ${user.estado === 'Activo' ? 'activo' : 'inactivo'}">${user.estado}</span></td>
+          <td>${user.ultimoAcceso}</td>
+          <td>
+            <button class="btn-accion editar" onclick="editarUsuario(${user.id})">Editar</button>
+            <button class="btn-accion eliminar" onclick="eliminarUsuario(${user.id})">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Generar auditoría
+    function generarAuditoria() {
+      const usuarios = SistemaULEAM.Usuarios.obtenerTodos();
+      const inventario = SistemaULEAM.Inventario.obtenerTodos();
+      const ordenes = SistemaULEAM.Ordenes.obtenerTodas();
+      
+      const registros = [];
+      
+      // Auditoría de usuarios (últimos accesos)
+      usuarios.forEach(u => {
+        if (u.ultimoAcceso !== '-') {
+          registros.push({
+            fecha: u.ultimoAcceso,
+            usuario: u.usuario,
+            accion: 'Inició sesión',
+            modulo: 'Autenticación',
+            detalles: u.rol
+          });
+        }
+      });
+      
+      // Auditoría de inventario (últimas modificaciones)
+      inventario.slice(-5).forEach(eq => {
+        registros.push({
+          fecha: eq.fecha + ' 10:00',
+          usuario: eq.responsable,
+          accion: 'Registró equipo',
+          modulo: 'Inventario',
+          detalles: eq.nombre
+        });
+      });
+      
+      // Auditoría de órdenes
+      ordenes.forEach(ord => {
+        if (ord.historial && ord.historial.length > 0) {
+          ord.historial.forEach(h => {
+            registros.push({
+              fecha: h.fecha,
+              usuario: 'Sistema',
+              accion: h.accion,
+              modulo: 'Mantenimiento',
+              detalles: ord.id
+            });
+          });
+        }
+      });
+      
+      // Ordenar por fecha (más recientes primero)
+      registros.sort((a, b) => {
+        const fechaA = new Date(a.fecha.split('/').reverse().join('-'));
+        const fechaB = new Date(b.fecha.split('/').reverse().join('-'));
+        return fechaB - fechaA;
+      });
+      
+      const tbody = document.getElementById('tablaAuditoria');
+      tbody.innerHTML = registros.slice(0, 20).map(reg => `
+        <tr>
+          <td>${reg.fecha}</td>
+          <td>${reg.usuario}</td>
+          <td>${reg.accion}</td>
+          <td>${reg.modulo}</td>
+          <td>${reg.detalles}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Cambiar tab
+    function cambiarTab(tab) {
+      document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('activo'));
+      event.target.classList.add('activo');
+      
+      document.querySelectorAll('.seccion').forEach(sec => sec.style.display = 'none');
+      document.getElementById('tab-' + tab).style.display = 'block';
+    }
+
+    // Modal
+    function abrirModal(tipo) {
+      usuarioEditando = null;
+      document.getElementById('modalTitulo').textContent = 'Nuevo Usuario';
+      document.getElementById('formUsuario').reset();
+      document.getElementById('usuarioId').value = '';
+      document.getElementById('modalUsuario').classList.add('show');
+    }
+
+    function cerrarModal() {
+      document.getElementById('modalUsuario').classList.remove('show');
+      usuarioEditando = null;
+    }
+
+    // Editar usuario
+    function editarUsuario(id) {
+      const usuarios = SistemaULEAM.Usuarios.obtenerTodos();
+      const usuario = usuarios.find(u => u.id === id);
+      if (!usuario) return;
+      
+      usuarioEditando = usuario;
+      document.getElementById('modalTitulo').textContent = 'Editar Usuario';
+      document.getElementById('usuarioId').value = usuario.id;
+      document.getElementById('nombreCompleto').value = usuario.nombre;
+      document.getElementById('usuario').value = usuario.usuario;
+      document.getElementById('emailUsuario').value = usuario.email;
+      document.getElementById('contrasena').value = usuario.password;
+      document.getElementById('rolUsuario').value = usuario.rol;
+      document.getElementById('estadoUsuario').value = usuario.estado;
+      
+      document.getElementById('modalUsuario').classList.add('show');
+    }
+
+    // Eliminar usuario
+    function eliminarUsuario(id) {
+      const usuarios = SistemaULEAM.Usuarios.obtenerTodos();
+      const usuario = usuarios.find(u => u.id === id);
+      
+      if (!usuario) return;
+      
+      if (confirm(`¿Está seguro de eliminar al usuario "${usuario.nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+        SistemaULEAM.Usuarios.eliminar(id);
+        alert('✅ Usuario eliminado correctamente');
+        cargarDatos();
+      }
+    }
+
+    // Guardar usuario
+    function guardarUsuario(e) {
+      e.preventDefault();
+      
+      const usuarioId = document.getElementById('usuarioId').value;
+      const datosUsuario = {
+        nombre: document.getElementById('nombreCompleto').value,
+        usuario: document.getElementById('usuario').value,
+        email: document.getElementById('emailUsuario').value,
+        password: document.getElementById('contrasena').value,
+        rol: document.getElementById('rolUsuario').value,
+        estado: document.getElementById('estadoUsuario').value
+      };
+      
+      if (usuarioId) {
+        // Editar
+        SistemaULEAM.Usuarios.actualizar(parseInt(usuarioId), datosUsuario);
+        alert('✅ Usuario actualizado correctamente');
+      } else {
+        // Nuevo
+        SistemaULEAM.Usuarios.agregar(datosUsuario);
+        alert('✅ Usuario creado correctamente');
+      }
+      
+      cerrarModal();
+      cargarDatos();
+    }
+
+    // Guardar configuración
+    function guardarConfiguracion() {
+      alert('✅ Configuración guardada correctamente');
+    }
+
+    // Cerrar sesión
+    function cerrarSesion() {
+      SistemaULEAM.Utils.cerrarSesionGlobal();
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.onclick = function(event) {
+      const modal = document.getElementById('modalUsuario');
+      if (event.target === modal) {
+        cerrarModal();
+      }
+    }
+
+    // Inicializar
+    window.onload = cargarDatos;
+  </script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventario General - ULEAM</title>
+  <link rel="stylesheet" href="styles_web.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .btn-accion-tabla {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 4px;
+      font-size: 0.9em;
+      transition: all 0.2s;
+    }
+    .btn-editar {
+      background: #e8eefd;
+      color: #3365b8;
+    }
+    .btn-editar:hover {
+      background: #3365b8;
+      color: #fff;
+    }
+    .btn-eliminar {
+      background: #fdeceb;
+      color: #e34343;
+    }
+    .btn-eliminar:hover {
+      background: #e34343;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="barra_principal">
+    <h1 class="titulo-principal">Inventario General</h1>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <button class="btn-rojo" onclick="cerrarSesion()">Cerrar Sesión</button>
+      <img src="https://www.uleam.edu.ec/wp-content/uploads/2012/09/LOGO-ULEAM-VERTICAL.png" class="logo-uleam" style="height:70px;">
+    </div>
+  </div>
+  
+  <div style="max-width:2050px;margin:auto;padding:19px;">
+    <!-- Contador de equipos -->
+    <div style="background: #f9faf9; padding: 12px 20px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="dashboard-container">
+        <div class="stat-card">
+          <h3>Total de Equipos</h3> 
+          <div class="numero-grande" id="contadorTotal">0</div>
+        </div>
+      </div>
+        <div class="dashboard-container">
+          <div class="stat-card azul">
+            <h3>Estado de Equipos</h3>
+            Activos: <strong id="contadorActivos">0</strong> 
+          </div>
+        </div>  
+        <div class="dashboard-container">
+          <div class="stat-card amarillo">
+            <h3>Estado de Equipos</h3> 
+            En reparación: <strong id="contadorReparacion">0</strong>
+          </div>
+        </div>
+        <div class="dashboard-container">
+          <div class="stat-card rojo">
+            <h3>Estado de Equipos</h3> 
+            Dados de baja: <strong id="contadorBaja">0</strong>
+          </div>  
+      </div>
+    </div>
+    <!-- Barra de acciones/filtros -->
+    <div class="filtros-bar">
+      <input type="text" id="buscar" placeholder="Buscar por nombre, serie o responsable...">
+      <select id="tipoFiltro">
+        <option value="">📦 Todos los tipos</option>
+      </select>
+      <select id="ubicacionFiltro">
+        <option value="">📍 Todas las ubicaciones</option>
+      </select>
+      <select id="estadoFiltro">
+        <option value="">Todos los estados</option>
+        <option>Activo</option>
+        <option>En reparación</option>
+        <option>Dado de baja</option>
+      </select>
+      <button onclick="limpiarFiltros()">Limpiar filtros</button>
+      <button class="btn-blue" onclick="cargarDatos()">🔄 Actualizar</button>
+      <button class="btn-blue" style="margin-left:auto;" onclick="nuevoEquipo()">+ Nuevo equipo</button>
+    </div>
+
+    <!-- Tabla del inventario -->
+    <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 18px #edf2f7;">
+      <table class="tabla-inventario" id="tablaInventario">
+        <thead>
+          <tr>
+            <th>Nombre del equipo</th>
+            <th>Tipo</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>N.º de serie</th>
+            <th>Responsable</th>
+            <th>Fecha ingreso</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inventarioBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Formulario registrar/editar -->
+    <div class="form-cont">
+      <div class="titulo-seccion" id="formTitulo">➕ Registrar Nuevo Equipo</div>
+      <form class="form-inline" id="formEquipo" onsubmit="guardarEquipo(event)">
+        <input type="hidden" id="equipoId">
+        <div style="flex:1;">
+          <label>Nombre del equipo *</label>
+          <input type="text" id="nombreEquipo" placeholder="Ej. PC Docencia Lab 12" required>
+        </div>
+        <div style="flex:1;">
+          <label>Tipo *</label>
+          <select id="tipoEquipo" required>
+            <option value="">Seleccionar tipo</option>
+            <option>Computador</option>
+            <option>Proyector</option>
+            <option>Impresora</option>
+            <option>UPS</option>
+            <option>Tablet</option>
+            <option>Servidor</option>
+            <option>Router</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label>Ubicación *</label>
+          <input type="text" id="ubicacionEquipo" placeholder="Ej. Bloque A — Lab 3" required>
+        </div>
+        <div style="flex:1;">
+          <label>Estado *</label>
+          <select id="estadoEquipo" required>
+            <option>Activo</option>
+            <option>En reparación</option>
+            <option>Dado de baja</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label>Número de serie *</label>
+          <input type="text" id="serieEquipo" placeholder="Ej. SER-PC-009812" required>
+        </div>
+        <div style="flex:1;">
+          <label>Responsable *</label>
+          <input type="text" id="responsableEquipo" placeholder="Nombre del responsable" required>
+        </div>
+        <div style="flex:1;">
+          <label>Marca</label>
+          <input type="text" id="marcaEquipo" placeholder="Ej. Dell">
+        </div>
+        <div style="flex:1;">
+          <label>Modelo</label>
+          <input type="text" id="modeloEquipo" placeholder="Ej. Optiplex 7090">
+        </div>
+        <div style="flex:1;">
+          <label>Valor de compra</label>
+          <input type="number" step="0.01" id="valorEquipo" placeholder="0.00">
+        </div>
+        <div style="flex:1;">
+          <label>Proveedor</label>
+          <input type="text" id="proveedorEquipo" placeholder="Nombre del proveedor">
+        </div>
+        <div style="flex-basis:100%;">
+          <label>Notas</label>
+          <input type="text" id="notasEquipo" placeholder="Notas adicionales sobre el equipo...">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-rojo" onclick="cancelarEdicion()">Cancelar</button>
+          <button type="submit" class="btn-verde">💾 Guardar equipo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="sistema-global.js"></script>
+  <script>
+    let inventarioFiltrado = [];
+
+    // Cargar datos
+    function cargarDatos() {
+      inventarioFiltrado = SistemaULEAM.Inventario.obtenerTodos();
+      cargarFiltros();
+      renderTabla();
+      actualizarEstadisticas();
+    }
+
+    // Cargar opciones de filtros
+    function cargarFiltros() {
+      const inventario = SistemaULEAM.Inventario.obtenerTodos();
+      const tipos = [...new Set(inventario.map(e => e.tipo))].sort();
+      const ubicaciones = [...new Set(inventario.map(e => e.ubicacion))].sort();
+      
+      document.getElementById('tipoFiltro').innerHTML = '<option value="">📦 Todos los tipos</option>' +
+        tipos.map(t => `<option>${t}</option>`).join('');
+      
+      document.getElementById('ubicacionFiltro').innerHTML = '<option value="">📍 Todas las ubicaciones</option>' +
+        ubicaciones.map(u => `<option>${u}</option>`).join('');
+    }
+
+    // Aplicar filtros
+    function aplicarFiltros() {
+      const inventario = SistemaULEAM.Inventario.obtenerTodos();
+      const busqueda = document.getElementById('buscar').value.toLowerCase();
+      const tipo = document.getElementById('tipoFiltro').value;
+      const ubicacion = document.getElementById('ubicacionFiltro').value;
+      const estado = document.getElementById('estadoFiltro').value;
+      
+      inventarioFiltrado = inventario.filter(eq => {
+        const coincideBusqueda = !busqueda || 
+          eq.nombre.toLowerCase().includes(busqueda) ||
+          eq.serie.toLowerCase().includes(busqueda) ||
+          eq.responsable.toLowerCase().includes(busqueda);
+        
+        return coincideBusqueda && 
+               (!tipo || eq.tipo === tipo) &&
+               (!ubicacion || eq.ubicacion === ubicacion) &&
+               (!estado || eq.estado === estado);
+      });
+      
+      renderTabla();
+    }
+
+    // Limpiar filtros
+    function limpiarFiltros() {
+      document.getElementById('buscar').value = '';
+      document.getElementById('tipoFiltro').selectedIndex = 0;
+      document.getElementById('ubicacionFiltro').selectedIndex = 0;
+      document.getElementById('estadoFiltro').selectedIndex = 0;
+      cargarDatos();
+    }
+
+    // Render tabla
+    function renderTabla() {
+      const tbody = document.getElementById('inventarioBody');
+      if (inventarioFiltrado.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#888;">No se encontraron equipos</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = inventarioFiltrado.map(eq => `
+        <tr>
+          <td><strong>${eq.nombre}</strong></td>
+          <td>${eq.tipo}</td>
+          <td>${eq.ubicacion}</td>
+          <td>${badgeEstado(eq.estado)}</td>
+          <td><code style="font-size:0.85em;">${eq.serie}</code></td>
+          <td>${eq.responsable}</td>
+          <td>${eq.fecha}</td>
+          <td>
+            <button class="btn-accion-tabla btn-editar" onclick="editarEquipo(${eq.id})">✏️</button>
+            <button class="btn-accion-tabla btn-eliminar" onclick="eliminarEquipo(${eq.id})">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Badge de estado
+    function badgeEstado(estado) {
+      if (estado === 'Activo') return '<span class="badge-gris">✓ Activo</span>';
+      if (estado === 'En reparación') return '<span class="badge-repar">⚠️ En reparación</span>';
+      if (estado === 'Dado de baja') return '<span class="badge-baja">✖️ Dado de baja</span>';
+      return `<span class="badge-gris">${estado}</span>`;
+    }
+
+    // Actualizar estadísticas
+    function actualizarEstadisticas() {
+      const stats = SistemaULEAM.Inventario.obtenerEstadisticas();
+      document.getElementById('contadorTotal').textContent = stats.total;
+      document.getElementById('contadorActivos').textContent = stats.activos;
+      document.getElementById('contadorReparacion').textContent = stats.enReparacion;
+      document.getElementById('contadorBaja').textContent = stats.dadosDeBaja;
+    }
+
+    // Guardar equipo
+    function guardarEquipo(e) {
+      e.preventDefault();
+      
+      const equipoId = document.getElementById('equipoId').value;
+      const equipo = {
+        nombre: document.getElementById('nombreEquipo').value,
+        tipo: document.getElementById('tipoEquipo').value,
+        ubicacion: document.getElementById('ubicacionEquipo').value,
+        estado: document.getElementById('estadoEquipo').value,
+        serie: document.getElementById('serieEquipo').value,
+        responsable: document.getElementById('responsableEquipo').value,
+        marca: document.getElementById('marcaEquipo').value || '-',
+        modelo: document.getElementById('modeloEquipo').value || '-',
+        valor: parseFloat(document.getElementById('valorEquipo').value) || 0,
+        proveedor: document.getElementById('proveedorEquipo').value || '-',
+        notas: document.getElementById('notasEquipo').value || '-'
+      };
+      
+      if (equipoId) {
+        // Editar
+        SistemaULEAM.Inventario.actualizar(parseInt(equipoId), equipo);
+        alert('✅ Equipo actualizado correctamente');
+      } else {
+        // Nuevo
+        SistemaULEAM.Inventario.agregar(equipo);
+        alert('✅ Equipo agregado correctamente');
+      }
+      
+      cargarDatos();
+      cancelarEdicion();
+      window.scrollTo(0, 0);
+    }
+
+    // Editar equipo
+    function editarEquipo(id) {
+      const inventario = SistemaULEAM.Inventario.obtenerTodos();
+      const equipo = inventario.find(e => e.id === id);
+      if (!equipo) return;
+      
+      document.getElementById('formTitulo').textContent = '✏️ Editar Equipo';
+      document.getElementById('equipoId').value = equipo.id;
+      document.getElementById('nombreEquipo').value = equipo.nombre;
+      document.getElementById('tipoEquipo').value = equipo.tipo;
+      document.getElementById('ubicacionEquipo').value = equipo.ubicacion;
+      document.getElementById('estadoEquipo').value = equipo.estado;
+      document.getElementById('serieEquipo').value = equipo.serie;
+      document.getElementById('responsableEquipo').value = equipo.responsable;
+      document.getElementById('marcaEquipo').value = equipo.marca;
+      document.getElementById('modeloEquipo').value = equipo.modelo;
+      document.getElementById('valorEquipo').value = equipo.valor;
+      document.getElementById('proveedorEquipo').value = equipo.proveedor;
+      document.getElementById('notasEquipo').value = equipo.notas;
+      
+      document.getElementById('formEquipo').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Eliminar equipo
+    function eliminarEquipo(id) {
+      const inventario = SistemaULEAM.Inventario.obtenerTodos();
+      const equipo = inventario.find(e => e.id === id);
+      if (!equipo) return;
+      
+      if (confirm(`¿Eliminar "${equipo.nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+        SistemaULEAM.Inventario.eliminar(id);
+        cargarDatos();
+        alert('✅ Equipo eliminado correctamente');
+      }
+    }
+
+    // Nuevo equipo
+    function nuevoEquipo() {
+      cancelarEdicion();
+      document.getElementById('formEquipo').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('nombreEquipo').focus();
+    }
+
+    // Cancelar edición
+    function cancelarEdicion() {
+      document.getElementById('formTitulo').textContent = '➕ Registrar Nuevo Equipo';
+      document.getElementById('formEquipo').reset();
+      document.getElementById('equipoId').value = '';
+    }
+
+    // Cerrar sesión
+    function cerrarSesion() {
+      SistemaULEAM.Utils.cerrarSesionGlobal();
+    }
+
+    // Event listeners para filtros
+    document.getElementById('buscar').addEventListener('input', aplicarFiltros);
+    document.getElementById('tipoFiltro').addEventListener('change', aplicarFiltros);
+    document.getElementById('ubicacionFiltro').addEventListener('change', aplicarFiltros);
+    document.getElementById('estadoFiltro').addEventListener('change', aplicarFiltros);
+
+    // Escuchar cambios en el inventario
+    window.addEventListener('inventarioCambiado', cargarDatos);
+
+    // Inicializar
+    window.onload = cargarDatos;
+  </script>
+</body>
+</html>
