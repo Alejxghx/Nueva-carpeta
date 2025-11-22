@@ -151,6 +151,65 @@
   
   <script src="sistema-global.js"></script>
   <script>
+
+    console.log('=== DIAGNÓSTICO DEL SISTEMA ===');
+
+    // 1. Verificar que sistema-global.js se cargó
+    if (typeof SistemaULEAM === 'undefined') {
+      console.error('❌ ERROR CRÍTICO: sistema-global.js NO se cargó correctamente');
+      console.error('Verifica que el archivo existe en la misma carpeta que este HTML');
+      alert('ERROR: No se pudo cargar el sistema. Verifica la consola del navegador (F12)');
+    } else {
+      console.log('✅ sistema-global.js cargado correctamente');
+      console.log('SistemaULEAM:', SistemaULEAM);
+    }
+
+    // 2. Verificar localStorage
+    console.log('=== VERIFICANDO LOCALSTORAGE ===');
+    console.log('Inventario:', localStorage.getItem('inventarioULEAM'));
+    console.log('Usuarios:', localStorage.getItem('usuariosULEAM'));
+    console.log('Órdenes:', localStorage.getItem('ordenesMantenimiento'));
+
+    // 3. Forzar inicialización si no hay datos
+    if (SistemaULEAM) {
+      const inventario = SistemaULEAM.Inventario.obtenerTodos();
+      const usuarios = SistemaULEAM.Usuarios.obtenerTodos();
+      const ordenes = SistemaULEAM.Ordenes.obtenerTodas();
+      
+      console.log('Inventario cargado:', inventario.length, 'equipos');
+      console.log('Usuarios cargados:', usuarios.length, 'usuarios');
+      console.log('Órdenes cargadas:', ordenes.length, 'órdenes');
+      
+      if (inventario.length === 0) {
+        console.warn('⚠️ No hay datos de inventario. Reinicializando...');
+        localStorage.removeItem('inventarioULEAM');
+        SistemaULEAM.Inventario.inicializar();
+      }
+      
+      if (usuarios.length === 0) {
+        console.warn('⚠️ No hay datos de usuarios. Reinicializando...');
+        localStorage.removeItem('usuariosULEAM');
+        SistemaULEAM.Usuarios.inicializar();
+      }
+      
+      if (ordenes.length === 0) {
+        console.warn('⚠️ No hay datos de órdenes. Reinicializando...');
+        localStorage.removeItem('ordenesMantenimiento');
+        SistemaULEAM.Ordenes.inicializar();
+      }
+    }
+
+    // 4. Verificar sesión
+    console.log('=== VERIFICANDO SESIÓN ===');
+    const sesion = sessionStorage.getItem('sesionActiva');
+    const acceso = sessionStorage.getItem('accesoInventario');
+    const rolUsuario = sessionStorage.getItem('rolUsuario');
+    console.log('Sesión activa:', sesion);
+    console.log('Acceso inventario:', acceso);
+    console.log('Rol usuario:', rolUsuario);
+
+    console.log('=== FIN DIAGNÓSTICO ===');
+
     let inventarioFiltrado = [];
 
     // Cargar datos
